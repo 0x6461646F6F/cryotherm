@@ -25,7 +25,7 @@ pub enum ThomasError {
 ///
 /// # Errors
 ///
-/// - [`ThomasError::InvalidDimensions`] — a slice has the wrong length.
+/// - [`ThomasError::InvalidDimensions`] — slices have wrong length.
 ///   Nothing is written in this case.
 /// - [`ThomasError::UnstableSystem`] — the diagonal dominance precondition
 ///   is not met. This check runs before any output is written, so `x` is

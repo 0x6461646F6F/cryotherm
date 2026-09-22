@@ -12,10 +12,10 @@ panic = "abort"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
-missing_docs = "warn"
-unused_crate_dependencies = "warn"
 unused_results = "deny"
 missing_debug_implementations = "deny"
+missing_docs = "warn"
+unused_crate_dependencies = "warn"
 unreachable_pub = "warn"
 unused_qualifications = "warn"
 
