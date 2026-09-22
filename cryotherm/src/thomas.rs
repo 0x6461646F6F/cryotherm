@@ -34,7 +34,7 @@ pub enum ThomasError {
 /// # Example
 ///
 /// ```
-/// use geotherm_core::thomas;
+/// use cryotherm::thomas;
 ///
 /// // [4 1 0; 1 4 1; 0 1 4] x = [6, 12, 14]  =>  x = [1, 2, 3]
 /// let (a, b, c, d) = ([1.0, 1.0], [4.0; 3], [1.0, 1.0], [6.0, 12.0, 14.0]);

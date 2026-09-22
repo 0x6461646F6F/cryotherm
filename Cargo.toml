@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "geotherm_core",
+    "cryotherm",
 ]
 resolver = "3"
 
