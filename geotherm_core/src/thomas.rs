@@ -34,12 +34,12 @@ pub enum ThomasError {
 /// # Example
 ///
 /// ```
-/// use geotherm_core::thomas::thomas_algorithm;
+/// use geotherm_core::thomas;
 ///
 /// // [4 1 0; 1 4 1; 0 1 4] x = [6, 12, 14]  =>  x = [1, 2, 3]
 /// let (a, b, c, d) = ([1.0, 1.0], [4.0; 3], [1.0, 1.0], [6.0, 12.0, 14.0]);
 /// let (mut x, mut scratch) = ([0.0; 3], [0.0; 2]);
-/// thomas_algorithm(&a, &b, &c, &d, &mut x, &mut scratch).unwrap();
+/// thomas::thomas_algorithm(&a, &b, &c, &d, &mut x, &mut scratch).unwrap();
 /// assert!((x[1] - 2.0).abs() < 1e-12);
 /// ```
 pub fn thomas_algorithm(
