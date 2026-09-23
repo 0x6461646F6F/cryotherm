@@ -158,7 +158,7 @@ mod tests {
     #[test]
     fn shape_stride_matches_row_major_layout() {
         let s = Shape::new(3, 4, 5);
-        let idx = 1 * s.stride(Axis::X) + 2 * s.stride(Axis::Y) + 3 * s.stride(Axis::Z);
+        let idx = s.stride(Axis::X) + 2 * s.stride(Axis::Y) + 3 * s.stride(Axis::Z);
         assert_eq!(idx, 1 + 2 * 3 + 3 * 12);
         assert!(idx < s.len());
     }
