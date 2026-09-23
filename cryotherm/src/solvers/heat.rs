@@ -246,7 +246,7 @@ mod tests {
                 for k in 0..n {
                     let v = l.value(i, j, k);
                     assert!(
-                        (v - mean).abs() < 1e-6,
+                        (v - mean).abs() < EPS,
                         "({i},{j},{k}): got {v}, expected {mean}",
                     );
                 }
@@ -300,7 +300,7 @@ mod tests {
         }
 
         let final_sum: f64 = l.data().iter().sum();
-        assert!((final_sum - initial).abs() < 1e-6);
+        assert!((final_sum - initial).abs() < EPS);
     }
 
     #[test]
