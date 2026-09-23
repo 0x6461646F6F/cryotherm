@@ -1,15 +1,6 @@
 //! Solver for tridiagonal linear systems using the Thomas algorithm.
 
-/// Errors returned by [`thomas_algorithm`].
-#[derive(Debug, PartialEq, Eq)]
-pub enum ThomasError {
-    /// Slice lengths don't match the system size. Required for size `n`:
-    /// `a`/`c` = `n-1`, `b`/`d`/`x` = `n`, `scratch` >= `n-1`, `n > 0`.
-    InvalidDimensions,
-    /// The matrix is not strictly diagonally dominant (by row or by column),
-    /// so the algorithm is not guaranteed to be numerically stable.
-    UnstableSystem,
-}
+use crate::error::Error;
 
 /// Solves a tridiagonal system `A·x = d` in place, without allocating.
 ///
@@ -25,9 +16,9 @@ pub enum ThomasError {
 ///
 /// # Errors
 ///
-/// - [`ThomasError::InvalidDimensions`] — slices have wrong length.
+/// - [`Error::InvalidDimensions`] — slices have wrong length.
 ///   Nothing is written in this case.
-/// - [`ThomasError::UnstableSystem`] — the diagonal dominance precondition
+/// - [`Error::UnstableSystem`] — the diagonal dominance precondition
 ///   is not met. This check runs before any output is written, so `x` is
 ///   left untouched.
 ///
@@ -49,7 +40,7 @@ pub fn thomas_algorithm(
     d: &[f64],
     x: &mut [f64],
     scratch: &mut [f64],
-) -> Result<(), ThomasError> {
+) -> Result<(), Error> {
     let n = d.len();
 
     if n == 0
@@ -59,7 +50,7 @@ pub fn thomas_algorithm(
         || x.len() != n
         || scratch.len() < n - 1
     {
-        return Err(ThomasError::InvalidDimensions);
+        return Err(Error::InvalidDimensions);
     }
 
     let mut row_dominance = true;
@@ -85,7 +76,7 @@ pub fn thomas_algorithm(
         }
 
         if !row_dominance && !column_dominance {
-            return Err(ThomasError::UnstableSystem);
+            return Err(Error::UnstableSystem);
         }
     }
 
@@ -188,7 +179,7 @@ mod tests {
         let mut s: [f64; 0] = [];
         assert!(matches!(
             thomas_algorithm(&[], &[], &[], &[], &mut x, &mut s),
-            Err(ThomasError::InvalidDimensions)
+            Err(Error::InvalidDimensions)
         ));
     }
 
@@ -199,29 +190,29 @@ mod tests {
 
         assert!(matches!(
             thomas_algorithm(&[1.0], &[4.0; 3], &[1.0; 2], &[1.0; 3], &mut x, &mut s),
-            Err(ThomasError::InvalidDimensions)
+            Err(Error::InvalidDimensions)
         ));
         assert!(matches!(
             thomas_algorithm(&[1.0; 2], &[4.0; 2], &[1.0; 2], &[1.0; 3], &mut x, &mut s),
-            Err(ThomasError::InvalidDimensions)
+            Err(Error::InvalidDimensions)
         ));
         assert!(matches!(
             thomas_algorithm(&[1.0; 2], &[4.0; 3], &[1.0; 3], &[1.0; 3], &mut x, &mut s),
-            Err(ThomasError::InvalidDimensions)
+            Err(Error::InvalidDimensions)
         ));
         let mut x_bad = [0.0; 4];
         assert!(matches!(
             thomas_algorithm(
                 &[1.0; 2], &[4.0; 3], &[1.0; 2], &[1.0; 3], &mut x_bad, &mut s
             ),
-            Err(ThomasError::InvalidDimensions)
+            Err(Error::InvalidDimensions)
         ));
         let mut s_bad = [0.0; 1];
         assert!(matches!(
             thomas_algorithm(
                 &[1.0; 2], &[4.0; 3], &[1.0; 2], &[1.0; 3], &mut x, &mut s_bad
             ),
-            Err(ThomasError::InvalidDimensions)
+            Err(Error::InvalidDimensions)
         ));
     }
 
@@ -237,7 +228,7 @@ mod tests {
             &mut x,
             &mut s,
         );
-        assert!(matches!(r, Err(ThomasError::UnstableSystem)));
+        assert!(matches!(r, Err(Error::UnstableSystem)));
         assert_eq!(x, [0.0; 3]);
     }
 
@@ -246,7 +237,7 @@ mod tests {
         let mut x = [0.0; 2];
         let mut s = [0.0; 2];
         let r = thomas_algorithm(&[3.0], &[3.0, 3.0], &[1.0], &[1.0, 1.0], &mut x, &mut s);
-        assert!(matches!(r, Err(ThomasError::UnstableSystem)));
+        assert!(matches!(r, Err(Error::UnstableSystem)));
         assert_eq!(x, [0.0; 2]);
     }
 
@@ -262,7 +253,7 @@ mod tests {
             &mut x,
             &mut s,
         );
-        assert!(matches!(r, Err(ThomasError::UnstableSystem)));
+        assert!(matches!(r, Err(Error::UnstableSystem)));
         assert_eq!(x, [0.0; 3]);
     }
 
@@ -271,7 +262,7 @@ mod tests {
         let mut x = [0.0];
         let mut s: [f64; 0] = [];
         let r = thomas_algorithm(&[], &[0.0], &[], &[1.0], &mut x, &mut s);
-        assert!(matches!(r, Err(ThomasError::UnstableSystem)));
+        assert!(matches!(r, Err(Error::UnstableSystem)));
         assert_eq!(x, [0.0]);
     }
 }
