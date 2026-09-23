@@ -6,7 +6,7 @@
 //! - [`solve`] — one-shot, takes all buffers from the caller.
 //! - [`Workspace`] — preallocated buffers for repeated solves.
 
-use crate::error::Error;
+use crate::Error;
 
 /// Preallocated buffers for repeated solves.
 ///
