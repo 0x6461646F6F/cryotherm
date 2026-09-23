@@ -68,7 +68,11 @@ impl Shape {
     /// Largest of the three extents.
     pub const fn max_axis(&self) -> usize {
         let m = if self.nx > self.ny { self.nx } else { self.ny };
-        if m > self.nz { m } else { self.nz }
+        if m > self.nz {
+            m
+        } else {
+            self.nz
+        }
     }
 
     /// Extent along `axis`.

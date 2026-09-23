@@ -1,11 +1,8 @@
 //! The 3D lattice: field values and per-point state.
 //!
-//! A [`Lattice`] owns two field buffers and a per-point state mask. The
+//! A [`Lattice`] owns field buffer and a per-point state mask. The
 //! state mask marks each point as either [`Point::Solid`] or
-//! [`Point::Void`]; the solver's line traversal splits at voids. The two
-//! field buffers are ping-ponged by the solver: `now` is the source for
-//! the current sweep, `next` is where results are written, and after the
-//! sweep [`swap_fields`](Lattice::swap_fields) exchanges them.
+//! [`Point::Void`]; the solver's line traversal splits at voids.
 
 use super::Shape;
 
@@ -25,8 +22,7 @@ pub enum Point {
 #[derive(Debug)]
 pub struct Lattice {
     shape: Shape,
-    now: Vec<f64>,
-    next: Vec<f64>,
+    data: Vec<f64>,
     points: Vec<Point>,
 }
 
@@ -42,8 +38,7 @@ impl Lattice {
 
         Self {
             shape,
-            now: vec![0.0; n],
-            next: vec![0.0; n],
+            data: vec![0.0; n],
             points: vec![Point::Solid; n],
         }
     }
@@ -61,21 +56,21 @@ impl Lattice {
 
     /// Field value at `(x, y, z)`.
     pub fn value(&self, x: usize, y: usize, z: usize) -> f64 {
-        self.now[self.idx(x, y, z)]
+        self.data[self.idx(x, y, z)]
     }
 
     /// Sets the field value at `(x, y, z)`.
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: f64) {
         let i = self.idx(x, y, z);
-        self.now[i] = value;
+        self.data[i] = value;
     }
 
-    /// Fills the current field with `value`.
+    /// Fills the field with `value`.
     pub fn set_all(&mut self, value: f64) {
-        self.now.fill(value);
+        self.data.fill(value);
     }
 
-    /// Fills the current field from a closure over `(x, y, z)`.
+    /// Fills the field from a closure over `(x, y, z)`.
     pub fn set_from<F>(&mut self, mut f: F)
     where
         F: FnMut(usize, usize, usize) -> f64,
@@ -85,15 +80,15 @@ impl Lattice {
             for y in 0..ny {
                 for x in 0..nx {
                     let i = self.idx(x, y, z);
-                    self.now[i] = f(x, y, z);
+                    self.data[i] = f(x, y, z);
                 }
             }
         }
     }
 
-    /// The current field, indexed as [`idx`](Self::idx).
+    /// The field, indexed as [`idx`](Self::idx).
     pub fn data(&self) -> &[f64] {
-        &self.now
+        &self.data
     }
 
     /// State of the point at `(x, y, z)`.
@@ -113,24 +108,10 @@ impl Lattice {
         self.points[i] = Point::Solid;
     }
 
-    /// Three disjoint borrows of the internal buffers, in the order
-    /// `(now, next, points)`.
-    ///
-    /// This is how the sweep driver accesses the lattice without going
-    /// through per-element method calls. It exists so the fields can stay
-    /// private while the solver still reads the previous field, writes
-    /// the next one, and consults the state mask simultaneously.
-    pub(crate) fn split(&mut self) -> (&[f64], &mut [f64], &[Point]) {
-        (&self.now, &mut self.next, &self.points)
-    }
-
-    /// Swaps the current and next fields.
-    ///
-    /// Called by the solver between directional sweeps. Crate-internal:
-    /// a caller who swapped mid-computation would invalidate any state
-    /// the solver is holding.
-    pub(crate) fn swap_fields(&mut self) {
-        std::mem::swap(&mut self.now, &mut self.next);
+    /// Two disjoint borrows of the internal buffers, in the order
+    /// `(data, points)`.
+    pub(crate) fn split(&mut self) -> (&mut [f64], &[Point]) {
+        (&mut self.data, &self.points)
     }
 }
 
@@ -213,23 +194,8 @@ mod tests {
         let mut l = Lattice::new(Shape::cube(2));
         l.set(0, 0, 0, 1.0);
 
-        let (now, next, points) = l.split();
-        assert_eq!(now[0], 1.0);
-        assert_eq!(next[0], 0.0);
+        let (data, points) = l.split();
+        assert_eq!(data[0], 1.0);
         assert_eq!(points[0], Point::Solid);
-    }
-
-    #[test]
-    fn swap_fields_exchanges_buffers() {
-        let mut l = Lattice::new(Shape::cube(2));
-        l.set(0, 0, 0, 1.0);
-
-        {
-            let (_, next, _) = l.split();
-            next[0] = 99.0;
-        }
-
-        l.swap_fields();
-        assert_eq!(l.value(0, 0, 0), 99.0);
     }
 }
